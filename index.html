@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BusGalicia</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        header {
+            background-color: #ff2020;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 {
+            margin: 0;
+            color: white;
+        }
+        nav ul {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+        nav ul li {
+            margin-left: 20px;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+        }
+        .search-bar input {
+            padding: 5px;
+            font-size: 16px;
+        }
+        .search-bar button {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .container {
+            display: flex;
+        }
+        .table-container {
+            width: 50%;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .map-container {
+            width: 50%;
+            height: 100vh;
+            position: relative;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        .filters {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: white;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+</head>
+<body>
+    <header>
+        <h1>BusGalicia</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Índice</a></li>
+                <li><a href="lineas.php">Líneas</a></li>
+                <li><a href="buses.php">Buses</a></li>
+                <li><a href="paradas.php">Paradas</a></li>
+                <li><a href="#">Mapa</a></li>
+            </ul>
+        </nav>
+        <div class="search-bar">
+            <input type="text" placeholder="Buscar...">
+            <button>🔍</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="table-container">
+            <table>
+                <tr>
+                    <th>Tranvía</th>
+                    <th>Tipo</th>
+                    <th>Línea</th>
+                    <th>Sentido</th>
+                    <th>Última parada</th>
+                    <th>Visto hace</th>
+                </tr>
+                <tr>
+                    <td>593</td>
+                    <td>🚋</td>
+                    <td>C1</td>
+                    <td>Eugenio Gross</td>
+                    <td>Av. de Andalucía</td>
+                    <td>1m 39s</td>
+                </tr>
+                <!-- Más filas aquí -->
+            </table>
+        </div>
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="filters">
+                <label><input type="checkbox" checked>Buses</label><br>
+                <label><input type="checkbox" checked>Rutas</label><br>
+                <label><input type="checkbox" checked>Paradas</label><br>
+                <label><input type="checkbox">Cabeceras</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Inicializar el mapa en el div con id 'map'
+        var map = L.map('map').setView([36.7213028, -4.4216366], 13); // Coordenadas para Málaga
+
+        // Cargar la capa de OSM
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Ejemplo de cómo añadir un marcador
+        L.marker([36.7213028, -4.4216366]).addTo(map)
+            .bindPopup('Este es un ejemplo de marcador.')
+            .openPopup();
+    </script>
+</body>
+</html>
