@@ -158,11 +158,11 @@ $total_paginas = ceil($total_resultados / $resultados_por_pagina);
     <h1>BusGalicia</h1>
     <nav>
         <ul>
-            <li><a href="index.html">Índice</a></li>
-            <li><a href="lineas.php">Líneas</a></li>
-            <li><a href="#">Buses</a></li>
-            <li><a href="paradas.php">Paradas</a></li>
-            <li><a href="#">Mapa</a></li>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="lineas.php">Líneas</a></li>
+                <li><a href="buses.php">Buses</a></li>
+                <li><a href="paradas.php">Paradas</a></li>
+                <li><a href="mapa.php">Mapa</a></li>
         </ul>
     </nav>
     <div class="search-bar">

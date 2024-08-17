@@ -52,10 +52,12 @@
         }
         .container {
             display: flex;
+            height: calc(100vh - 70px); /* Ajuste para el tamaño del mapa */
         }
         .table-container {
             width: 50%;
             padding: 20px;
+            overflow-y: auto;
         }
         table {
             width: 100%;
@@ -73,12 +75,12 @@
         }
         .map-container {
             width: 50%;
-            height: 100vh;
             position: relative;
         }
         #map {
             width: 100%;
             height: 100%;
+            border-radius: 10px;
         }
         .filters {
             position: absolute;
@@ -87,6 +89,26 @@
             background-color: white;
             padding: 10px;
             border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .bus-icon {
+            background-color: #000;
+            color: #fff;
+            border-radius: 4px;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            line-height: 24px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .bus-icon span {
+            display: block;
+            color: white;
+        }
+        .bus-icon span.number {
+            font-size: 10px;
         }
     </style>
     <!-- Leaflet CSS -->
@@ -101,7 +123,7 @@
                 <li><a href="lineas.php">Líneas</a></li>
                 <li><a href="buses.php">Buses</a></li>
                 <li><a href="paradas.php">Paradas</a></li>
-                <li><a href="#">Mapa</a></li>
+                <li><a href="mapa.php">Mapa</a></li>
             </ul>
         </nav>
         <div class="search-bar">
@@ -112,24 +134,21 @@
 
     <div class="container">
         <div class="table-container">
-            <table>
-                <tr>
-                    <th>Tranvía</th>
-                    <th>Tipo</th>
-                    <th>Línea</th>
-                    <th>Sentido</th>
-                    <th>Última parada</th>
-                    <th>Visto hace</th>
-                </tr>
-                <tr>
-                    <td>593</td>
-                    <td>🚋</td>
-                    <td>C1</td>
-                    <td>Eugenio Gross</td>
-                    <td>Av. de Andalucía</td>
-                    <td>1m 39s</td>
-                </tr>
-                <!-- Más filas aquí -->
+            <h2>Buses Circulando</h2>
+            <table id="buses-table">
+                <thead>
+                    <tr>
+                        <th>Bus</th>
+                        <th>Tipo</th>
+                        <th>Línea</th>
+                        <th>Sentido</th>
+                        <th>Última parada</th>
+                        <th>Visto hace</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Filas de buses se añadirán aquí -->
+                </tbody>
             </table>
         </div>
         <div class="map-container">
@@ -146,19 +165,135 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        // Inicializar el mapa en el div con id 'map'
-        var map = L.map('map').setView([36.7213028, -4.4216366], 13); // Coordenadas para Málaga
+        var map = L.map('map').setView([43.3623, -8.4115], 13); // Coordenadas para La Coruña
 
-        // Cargar la capa de OSM
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18,
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Ejemplo de cómo añadir un marcador
-        L.marker([36.7213028, -4.4216366]).addTo(map)
-            .bindPopup('Este es un ejemplo de marcador.')
-            .openPopup();
+        var marcadores = {};
+        var lineas = [];
+        var indiceLinea = 0;
+
+        function iniciarActualizacion() {
+            fetch('mapa.php?action=get_lineas')
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        lineas = data;
+                        actualizarPosiciones();
+                    } else {
+                        console.error('Error: No se obtuvieron las líneas');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al obtener las líneas:', error);
+                });
+        }
+
+        function actualizarPosiciones() {
+            if (lineas.length === 0) return;
+
+            var linea = lineas[indiceLinea];
+            var apiUrl = `http://localhost:8080/busgalicia/proxy.php?&dato=${linea.id}&mostrar=B&func=99`;
+
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.resultado === "OK") {
+                        var tableBody = document.querySelector('#buses-table tbody');
+                        var currentBusKeys = new Set();
+
+                        data.mapas[0].buses.forEach(sentido => {
+                            sentido.buses.forEach(bus => {
+                                var latLng = [bus.posy, bus.posx];
+                                var key = `${latLng[0]}_${latLng[1]}_${linea.id}`;
+                                currentBusKeys.add(key);
+
+                                var color = linea.color || '#000000'; // Default a negro si no se encuentra color
+
+                                var iconHtml = `
+                                    <div class="bus-icon" style="background-color: ${color};">
+                                        <span class="number">${bus.bus}</span>
+                                    </div>
+                                `;
+
+                                var icon = L.divIcon({
+                                    className: 'bus-icon',
+                                    html: iconHtml,
+                                    iconSize: [24, 24]
+                                });
+
+                                // Actualizar marcadores en el mapa
+                                if (!marcadores[key]) {
+                                    marcadores[key] = L.marker(latLng, { icon: icon }).addTo(map);
+                                } else {
+                                    marcadores[key].setIcon(icon);
+                                    marcadores[key].setLatLng(latLng);
+                                }
+
+                                marcadores[key].bindPopup(`Bus: ${bus.bus}<br>Línea: ${linea.numero}<br>Sentido: ${sentido.sentido}`);
+
+                                // Actualizar o agregar filas en la tabla
+                                var existingRow = tableBody.querySelector(`[data-key="${key}"]`);
+                                if (!existingRow) {
+                                    var row = document.createElement('tr');
+                                    row.setAttribute('data-key', key);
+                                    row.innerHTML = `
+                                        <td>${bus.bus}</td>
+                                        <td>🚋</td>
+                                        <td>${linea.numero}</td>
+                                        <td>${sentido.sentido}</td>
+                                        <td>${bus.parada}</td>
+                                        <td>${bus.tiempo}</td>
+                                    `;
+                                    tableBody.appendChild(row);
+                                } else {
+                                    existingRow.innerHTML = `
+                                        <td>${bus.bus}</td>
+                                        <td>🚋</td>
+                                        <td>${linea.numero}</td>
+                                        <td>${sentido.sentido}</td>
+                                        <td>${bus.parada}</td>
+                                        <td>${bus.tiempo}</td>
+                                    `;
+                                }
+                            });
+                        });
+
+                        // Eliminar buses que ya no están en la lista para la línea actual
+                        tableBody.querySelectorAll('tr').forEach(row => {
+                            var key = row.getAttribute('data-key');
+                            if (key.startsWith(`${linea.id}_`) && !currentBusKeys.has(key)) {
+                                tableBody.removeChild(row);
+                                if (marcadores[key]) {
+                                    map.removeLayer(marcadores[key]);
+                                    delete marcadores[key];
+                                }
+                            }
+                        });
+
+                    } else {
+                        console.error("Error en la respuesta de la API:", data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al obtener los datos de la API:', error);
+                })
+                .finally(() => {
+                    // Esperar 15 segundos antes de hacer la siguiente petición
+                    indiceLinea = (indiceLinea + 1) % lineas.length;
+                    setTimeout(actualizarPosiciones, 15000);
+                });
+        }
+
+        iniciarActualizacion();
     </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 12-08-2024 a las 17:53:26
+-- Tiempo de generación: 17-08-2024 a las 17:29:39
 -- Versión del servidor: 10.4.22-MariaDB
 -- Versión de PHP: 8.1.1
 
@@ -43,8 +43,8 @@ CREATE TABLE `buses` (
 
 INSERT INTO `buses` (`id`, `matricula`, `modelo`, `tipo`, `puertas`, `fecha_matriculacion`, `combustible`) VALUES
 (327, 'C 0127 CJ', 'Mercedes-Benz O405N2', 'Rígido', 2, '2000-09-01', 'Diesel'),
-(329, 'PRUEBAS', 'Vehículo de Pruebas', 'Rígido', 3, '2024-01-01', 'Eléctrico'),
-(331, 'PRUEBAS', 'Vehículo de Pruebas', 'Rígido', 3, '2024-01-01', 'Eléctrico'),
+(329, 'PRUEBAS', 'Vehículo de Pruebas', 'Pruebas', 3, '2024-01-01', 'Eléctrico'),
+(331, 'PRUEBAS', 'Vehículo de Pruebas', 'Pruebas', 3, '2024-01-01', 'Eléctrico'),
 (332, 'C 7408 CJ', 'Mercedes-Benz O405N2', 'Rígido', 2, '2000-09-01', 'Diesel'),
 (333, 'C 8099 CJ', 'Mercedes-Benz O405N2', 'Rígido', 2, '2000-09-01', 'Diesel'),
 (334, 'C 9907 CJ', 'Mercedes-Benz O405N2', 'Rígido', 2, '2000-09-01', 'Diesel'),
@@ -596,7 +596,7 @@ INSERT INTO `paradas` (`id`, `nombre`, `posx`, `posy`, `enlaces`) VALUES
 (415, 'Chalés Refinería', '-8.43977700', '43.35341800', '600, 601'),
 (416, 'Av. do Exército, 44', '-8.39510000', '43.35460500', '100, 1700'),
 (417, 'O Birloque, Bloque 6-8', '-8.41447300', '43.34215200', '500, 2300'),
-(424, 'Cocheras', '-8.42753300', '43.37336800', ''),
+(424, 'Cocheras (Salidas)', '-8.42753300', '43.37336800', ''),
 (425, 'Paseo Marítimo, Modesta Goicouria', '-8.40836200', '43.36862700', '301, 400, 600, 601, 1100'),
 (426, 'Paseo Marítimo, Centro de Saúde', '-8.40593800', '43.36964500', '301, 400, 600, 601, 1100, 1801, 1800'),
 (428, 'Nova York, Filoloxía', '-8.40619500', '43.32496000', '2400'),
@@ -605,7 +605,7 @@ INSERT INTO `paradas` (`id`, `nombre`, `posx`, `posy`, `enlaces`) VALUES
 (431, 'Nova York, Casino', '-8.41673800', '43.31555300', '2400'),
 (432, 'Nova York, Rialta', '-8.40795500', '43.32357000', '2400'),
 (433, 'Nova York, fronte Filoloxía', '-8.40587800', '43.32510500', '2400'),
-(434, 'Cocheras', '-8.42758000', '43.37334500', '100, 1900, 200, 800, 300, 301, 400, 500, 600, 601, 700, 1100, 1200, 1500, 1400, 1700, 2000, 2100, 2200, 2300, 2301, 2400, 1800, 1801'),
+(434, 'Cocheras (Llegadas)', '-8.42758000', '43.37334500', '100, 1900, 200, 800, 300, 301, 400, 500, 600, 601, 700, 1100, 1200, 1500, 1400, 1700, 2000, 2100, 2200, 2300, 2301, 2400, 1800, 1801'),
 (435, 'Nova York, Amberes', '-8.40323200', '43.32626300', '2400'),
 (437, 'Obelisco', '-8.40205300', '43.36880800', ''),
 (438, 'P. Maritimo', '-8.40452200', '43.37073300', ''),
@@ -738,6 +738,22 @@ INSERT INTO `paradas` (`id`, `nombre`, `posx`, `posy`, `enlaces`) VALUES
 (594, 'Avda. Arteixo, 74', '-8.41324800', '43.35691300', ''),
 (595, 'Aurelio Aguirre Galarraga', '-8.40688200', '43.33553000', '500');
 
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `rutas`
+--
+
+CREATE TABLE `rutas` (
+  `id` int(11) NOT NULL,
+  `linea_id` int(11) NOT NULL,
+  `sentido` int(11) NOT NULL,
+  `paradas` text NOT NULL,
+  `destino` varchar(255) DEFAULT NULL,
+  `comentarios` text DEFAULT NULL,
+  `forma` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 --
 -- Índices para tablas volcadas
 --
@@ -761,6 +777,13 @@ ALTER TABLE `paradas`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indices de la tabla `rutas`
+--
+ALTER TABLE `rutas`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `linea_id` (`linea_id`);
+
+--
 -- AUTO_INCREMENT de las tablas volcadas
 --
 
@@ -769,6 +792,22 @@ ALTER TABLE `paradas`
 --
 ALTER TABLE `buses`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=429;
+
+--
+-- AUTO_INCREMENT de la tabla `rutas`
+--
+ALTER TABLE `rutas`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20002;
+
+--
+-- Restricciones para tablas volcadas
+--
+
+--
+-- Filtros para la tabla `rutas`
+--
+ALTER TABLE `rutas`
+  ADD CONSTRAINT `rutas_ibfk_1` FOREIGN KEY (`linea_id`) REFERENCES `lineas` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
